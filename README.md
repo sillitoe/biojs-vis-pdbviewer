@@ -42,3 +42,41 @@ In keeping with the biojs 2.0 principles that each component should "do one thin
 
 The previous incarnation included a control panel, but the intention is to move this kind of functionality to a separate component.
 
+Demo
+----
+
+Currently, something along the lines of...
+
+```bash
+# make sure we have node.js (and git) 
+> sudo apt-get install npm git
+
+# clone this repo locally
+> git clone https://github.com/sillitoe/biojs-vis-pdbviewer biojs-vis-pdbviewer
+> cd biojs-pdb-viewer
+
+# install http-server globally
+> npm install -g http-server
+
+# make sure node.js can access all the local dependencies
+> npm install
+
+# build the code
+> npm run build-browser
+
+# start the local web server
+> http-server
+
+# direct your browser to
+http://localhost:8080/examples/simple.html
+```
+
+However, I'm sure there will be an easier demo shortly.
+
+
+
+
+
+```
+
+

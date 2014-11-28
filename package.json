@@ -1,7 +1,7 @@
 {
   "name": "biojs-vis-pdbviewer",
   "description": "A BioJS 2.0 component to view protein structures",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "http://github.com/isillitoe/biojs-vis-pdbviewer",
   "repository": {
     "type": "git",
@@ -58,7 +58,7 @@
     "snippets": [
       "snippets"
     ],
-    "first": "example"
+    "first": "simple"
   },
   "license": "Apache 2"
 }

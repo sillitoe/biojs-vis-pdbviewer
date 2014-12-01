@@ -1,7 +1,7 @@
 {
   "name": "biojs-vis-pdbviewer",
   "description": "A BioJS 2.0 component to view protein structures",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "http://github.com/isillitoe/biojs-vis-pdbviewer",
   "repository": {
     "type": "git",
@@ -16,32 +16,49 @@
     "biojs-events": "^0.0.1"
   },
   "devDependencies": {
-    "browserify": "~4.2.0",
+    "biojs-sniper": "^0.1.1",
+    "browserify": "^6.3.3",
     "chai": "^1.9.1",
+    "del": "^0.1.3",
     "gulp": "^3.8.8",
     "gulp-browserify": "^0.5.0",
     "gulp-gzip": "0.0.8",
     "gulp-jshint": "^1.8.4",
     "gulp-mocha": "^1.0.0",
     "gulp-rename": "^1.2.0",
-    "gulp-rimraf": "^0.1.0",
     "gulp-uglify": "^1.0.1",
     "gulp-watch": "^1.0.2",
+    "jsdom": "^0.11.1",
     "mkdirp": "^0.5.0",
     "mocha": "~1.20.1",
     "uglify-js": "~2.4.15",
-    "watchify": "~1.0.2",
-    "jsdom": "^0.11.1"
+    "watchify": "^2.1.1"
   },
   "keywords": [
-    "biojs, protein, structure, PDB"
+    "biojs",
+    "protein",
+    "structure",
+    "PDB"
   ],
   "main": "./index.js",
   "scripts": {
     "test": "mocha --reporter spec",
-    "build-browser": "mkdirp build; browserify browser.js -o build/biojs-vis-pdbviewer.js",
+    "build": "gulp build",
+    "build-browser": "gulp build-browser",
     "build-browser-min": "gulp build-browser-gzip",
-    "watch": "mkdirp build; watchify browser.js -o build/biojs-vis-pdbviewer.js"
+    "prepublish": "gulp",
+    "sniper": "biojs-sniper .",
+    "watch": "gulp watch",
+    "test-watch": "gulp test-watch"
+  },
+  "sniper": {
+    "js": [
+      "/build/biojsvispdb.js", "https://code.jquery.com/jquery-1.11.1.min.js",
+    "/external/jmol-14.2.4/jsmol/JSmol.min.nojq.js", "/external/jmol-14.2.4/jsmol/js/Jmol2.js"],
+    "snippets": [
+      "snippets"
+    ],
+    "first": "simple"
   },
   "license": "Apache 2"
 }

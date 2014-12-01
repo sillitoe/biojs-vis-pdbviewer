@@ -1,75 +1,73 @@
+// browserify build config
+var buildDir = "build";
+var outputFile = "biojsvispdb";
+
+// packages
 var gulp   = require('gulp');
-var jshint = require('gulp-jshint');
-var mocha = require('gulp-mocha');
-var watch = require('gulp-watch');
+
+// browser builds
+var browserify = require('browserify');
+var watchify = require('watchify')
 var uglify = require('gulp-uglify');
 
-// external tools
+
+
+// code style 
+
+// gulp helper
+var source = require('vinyl-source-stream'); // converts node streams into vinyl streams
+var gzip = require('gulp-gzip');
+var rename = require('gulp-rename');
+var chmod = require('gulp-chmod');
+var streamify = require('gulp-streamify'); // converts streams into buffers (legacy support for old plugins)
+var watch = require('gulp-watch');
+
+// path tools
+var fs = require('fs');
 var path = require('path');
 var join = path.join;
 var mkdirp = require('mkdirp');
-var watchify = require("watchify");
-var gzip = require('gulp-gzip');
-var clean = require('gulp-rimraf');
-var rename = require('gulp-rename');
-var browserify = require('gulp-browserify');
-
-// config
-var buildDir = "build";
-var browserFile = "browser.js";
-var packageConfig = require('./package.json');
-var outputFile = packageConfig.name;
+var del = require('del');
 
 // auto config
-var outputFileSt = outputFile + ".js";
-var outputFilePath = join(buildDir,outputFileSt);
-var outputFileMinSt = outputFile + ".min.js";
-var outputFileMin = join(buildDir,outputFileMinSt);
+var outputFileMin = join(buildDir,outputFile + ".min.js");
+var packageConfig = require('./package.json');
 
-gulp.task('default', ['lint', 'test', 'build-browser', 'build-browser-gzip']);
+// a failing test breaks the whole build chain
+gulp.task('build', ['build-browser', 'build-browser-gzip']);
+gulp.task('default', [  'build']);
 
-gulp.task('lint', function() {
-  return gulp.src('./src/*.js')
-    .pipe(jshint())
-    .pipe(jshint.reporter('default'));
+// will remove everything in build
+gulp.task('clean', function(cb) {
+  del([buildDir], cb);
 });
 
-
-
-gulp.task('test', function () {
-    return gulp.src('./test/**/*.js', {read: false})
-        .pipe(mocha({reporter: 'spec',
-                    useColors: false}));
-});
-
-gulp.task('watch', function() {
-   // watch coffee files
-   gulp.watch(['./src/**/*.js', './test/**/*.js'], function() {
-     gulp.run('test');
-   });
+// just makes sure that the build dir exists
+gulp.task('init', ['clean'], function() {
+  mkdirp(buildDir, function (err) {
+    if (err) console.error(err)
+  });
 });
 
 // browserify debug
 gulp.task('build-browser',['init'], function() {
-  gulp.src(outputFilePath).pipe(clean());
-
-  // make a copy the
-  var browserifyOptions = {debug: true};
-
-  return gulp.src(browserFile)
-  .pipe(browserify(browserifyOptions))
-  .pipe(rename(outputFileSt))
-  .pipe(gulp.dest(buildDir));
+  var b = browserify({debug: true,hasExports: true});
+  exposeBundles(b);
+  return b.bundle()
+    .pipe(source(outputFile + ".js"))
+    .pipe(chmod(644))
+    .pipe(gulp.dest(buildDir));
 });
 
 // browserify min
 gulp.task('build-browser-min',['init'], function() {
-  gulp.src(outputFileMin).pipe(clean());
-  return gulp.src(browserFile)
-  .pipe(browserify({}))
-  .pipe(uglify())
-  .pipe(rename(outputFileMinSt))
-  .pipe(gulp.dest(buildDir));
+  var b = browserify({hasExports: true, standalone: "biojs-vis-pmccitation"});
+  exposeBundles(b);
+  return b.bundle()
+    .pipe(source(outputFile + ".min.js"))
+    .pipe(chmod(644))
+    .pipe(streamify(uglify()))
+    .pipe(gulp.dest(buildDir));
 });
  
 gulp.task('build-browser-gzip', ['build-browser-min'], function() {
@@ -79,19 +77,41 @@ gulp.task('build-browser-gzip', ['build-browser-min'], function() {
     .pipe(gulp.dest(buildDir));
 });
 
+// exposes the main package
+// + checks the config whether it should expose other packages
+function exposeBundles(b){
+  b.add("./" + packageConfig.main, {expose: packageConfig.name });
+  if(packageConfig.sniper !== undefined && packageConfig.sniper.exposed !== undefined){
+    for(var i=0; i<packageConfig.sniper.exposed.length; i++){
+      b.require(packageConfig.sniper.exposed[i]);
+    }
+  }
+}
 
+// watch task for browserify 
+// watchify has an internal cache -> subsequent builds are faster
+gulp.task('watch', function() {
+  var util = require('gulp-util')
 
-// will remove everything in build
-gulp.task('clean', function() {
-  gulp.src(buildDir).pipe(clean());
-  gulp.run('init');
-});
+  var b = browserify({debug: true,hasExports: true, cache: {}, packageCache: {} });
+  b.add("./" + packageConfig.main, {expose: packageConfig.name});
+  // expose other bundles
+  exposeBundles(b);
 
-// just makes sure that the build dir exists
-gulp.task('init', function() {
-  mkdirp(buildDir, function (err) {
-    if (err) console.error(err)
+  function rebundle(ids){
+    b.bundle()
+    .on("error", function(error) {
+      util.log(util.colors.red("Error: "), error);
+     })
+    .pipe(source(outputFile + ".js"))
+    .pipe(chmod(644))
+    .pipe(gulp.dest(buildDir));
+  }
+
+  var watcher = watchify(b);
+  watcher.on("update", rebundle)
+   .on("log", function(message) {
+      util.log("Refreshed:", message);
   });
+  return rebundle();
 });
-
-

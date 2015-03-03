@@ -55,23 +55,22 @@ Currently, something along the lines of...
 > git clone https://github.com/sillitoe/biojs-vis-pdbviewer biojs-vis-pdbviewer
 > cd biojs-pdb-viewer
 
-# install http-server globally
-> npm install -g http-server
-
 # make sure node.js can access all the local dependencies
 > npm install
 
 # build the code
 > npm run build-browser
 
-# start the local web server
-> http-server
+# install sniper (to view examples)
+> npm install sniper
+
+# start the sniper web server 
+> ./node_modules/sniper/bin/sniper
 
 # direct your browser to
-http://localhost:8080/examples/simple.html
+http://localhost:9090/snippets
 ```
 
-However, I'm sure there will be an easier demo shortly.
 
 
 
